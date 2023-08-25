@@ -9,18 +9,18 @@ return {
   { import = "astrocommunity.colorscheme.monokai-pro-nvim" },
   { import = "astrocommunity.colorscheme.sonokai" },
   -- { import = "astrocommunity.bars-and-lines.lualine", enabled = false },
-  { import = "astrocommunity.bars-and-lines.bufferline-nvim", enabled = false },
-  {
-    "akinsho/bufferline.nvim",
-    options = {
-      offsets = {
-        { filetype = "neo-tree", text = "File Explorer", highlight = "NeoTreeNormal", padding = 3 },
-      },
-      show_close_icon = true,
-      show_buffer_close_icons = true,
-      themable = true,
-    },
-  },
+  -- { import = "astrocommunity.bars-and-lines.bufferline-nvim", enabled = false },
+  -- {
+  --   "akinsho/bufferline.nvim",
+  --   options = {
+  --     offsets = {
+  --       { filetype = "neo-tree", text = "File Explorer", highlight = "NeoTreeNormal", padding = 3 },
+  --     },
+  --     show_close_icon = true,
+  --     show_buffer_close_icons = true,
+  --     themable = true,
+  --   },
+  -- },
   { import = "astrocommunity.bars-and-lines.heirline-vscode-winbar", enabled = true },
   { import = "astrocommunity.bars-and-lines.heirline-mode-text-statusline", enabled = true },
   {
@@ -132,12 +132,16 @@ return {
         },
       }
 
-      opts.winbar = { -- winbar
+    opts.winbar = { -- create custom winbar
+        -- store the current buffer number
         init = function(self) self.bufnr = vim.api.nvim_get_current_buf() end,
-        fallthrough = false,
-        { -- inactive winbar
+        fallthrough = false, -- pick the correct winbar based on condition
+        -- inactive winbar
+        {
           condition = function() return not status.condition.is_active() end,
-          status.component.separated_path(),
+          -- show the path to the file relative to the working directory
+          status.component.separated_path { path_func = status.provider.filename { modify = ":.:h" } },
+          -- add the file name and icon
           status.component.file_info {
             file_icon = { hl = status.hl.file_icon "winbar", padding = { left = 0 } },
             file_modified = false,
@@ -147,8 +151,26 @@ return {
             update = "BufEnter",
           },
         },
-        { -- active winbar
-          status.component.breadcrumbs { hl = status.hl.get_attributes("winbar", true) },
+        -- active winbar
+        {
+          -- show the path to the file relative to the working directory
+          status.component.separated_path { path_func = status.provider.filename { modify = ":.:h" } },
+          -- add the file name and icon
+          status.component.file_info { -- add file_info to breadcrumbs
+            file_icon = { hl = status.hl.filetype_color, padding = { left = 0 } },
+            file_modified = false,
+            file_read_only = false,
+            hl = status.hl.get_attributes("winbar", true),
+            surround = false,
+            update = "BufEnter",
+          },
+          -- show the breadcrumbs
+          status.component.breadcrumbs {
+            icon = { hl = true },
+            hl = status.hl.get_attributes("winbar", true),
+            prefix = true,
+            padding = { left = 0 },
+          },
         },
       }
 
@@ -158,13 +180,28 @@ return {
       opts.tabline = { -- tabline
         { -- file tree padding
           condition = function(self)
+            -- local win = vim.api.nvim_tabpage_list_wins(0)[1]
+            -- local bufnr = vim.api.nvim_win_get_buf(win)
+            -- self.winid = win
             self.winid = vim.api.nvim_tabpage_list_wins(0)[1]
+
+            -- if vim.bo[bufnr].filetype == "neo%-tree" then
+            --   self.title = "neo%-tree"
+            --   return true
+            -- end
             return status.condition.buffer_matches(
               { filetype = { "aerial", "dapui_.", "neo%-tree", "NvimTree" } },
               vim.api.nvim_win_get_buf(self.winid)
             )
           end,
-          provider = function(self) return string.rep(" ", vim.api.nvim_win_get_width(self.winid) + 1) end,
+          provider = function(self)
+            -- local title = self.title
+            local title = "Neo-tree"
+            local width = vim.api.nvim_win_get_width(self.winid)
+            local pad = math.ceil((width - #title) / 2)
+            return string.rep(" ", pad) .. title .. string.rep(" ", pad)
+          end,
+          -- return string.rep(" ", vim.api.nvim_win_get_width(self.winid) + 1) end,
           hl = { bg = "tabline_bg" },
         },
         status.heirline.make_buflist(status.component.tabline_file_info()), -- component for each buffer tab
