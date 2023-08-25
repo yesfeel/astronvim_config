@@ -16,9 +16,71 @@ return {
       --   ["remote3"] = "github_user", -- GitHub user assume AstroNvim fork
     },
   },
+  -- add new user interface icon
+  icons = {
+    VimIcon = "",
+    ScrollText = "",
+    GitBranch = "",
+    GitAdd = "",
+    GitChange = "",
+    GitDelete = "",
+  },
+
+  heirline = {
+    -- define the separators between each section
+    separators = {
+      none = { "", "" },
+      center = { "  ", "  " },
+      left = { "", " " }, -- separator for the left side of the s0tatusline
+      right = { " ", "" }, -- separator for the right side of the statusline
+      tab = { "", "" },
+      -- tab = { "", "" },
+      -- tab = { "", "" },
+      breadcrumbs = "  ",
+      path = "  ",
+    },
+    -- add new colors that can be used by heirline
+    colors = function(hl)
+      local get_hlgroup = require("astronvim.utils").get_hlgroup
+      -- use helper function to get highlight group properties
+      local comment_fg = get_hlgroup("Comment").fg
+      hl.git_branch_fg = get_hlgroup("Todo").fg
+      hl.git_added = get_hlgroup("diffAdded").fg
+      hl.git_changed = get_hlgroup("diffChanged").fg
+      hl.git_removed = get_hlgroup("diffRemoved").fg
+      hl.blank_bg = get_hlgroup("Folded").fg
+      hl.file_info_bg = get_hlgroup("Visual").bg
+      hl.nav_icon_bg = get_hlgroup("String").fg
+      hl.nav_fg = hl.nav_icon_bg
+      hl.folder_icon_bg = get_hlgroup("Error").fg
+      hl.tabline_bg = get_hlgroup("Tabline").bg
+      hl.tabline_fg = get_hlgroup("Tabline").fg
+      return hl
+    end,
+    attributes = {
+      mode = { bold = true },
+      buffer_active = { bold = true, italic = true },
+      buffer_picker = { bold = true },
+      macro_recording = { bold = true },
+      git_branch = { bold = true },
+      git_diff = { bold = true },
+    },
+    icon_highlights = {
+      breadcrumbs = false,
+      file_icon = {
+        tabline = function(self) return self.is_active or self.is_visible end,
+        statusline = true,
+        winbar = true,
+      },
+    },
+  },
 
   -- Set colorscheme to use
-  colorscheme = "astrodark",
+  -- colorscheme = "astrodark",
+  -- colorscheme = "sonokai",
+  -- colorscheme = "nightfox",
+  -- colorscheme = "monokai-pro",
+  colorscheme = "one_monokai",
 
   -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
   diagnostics = {
